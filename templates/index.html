@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<div class="auth-card animate-fade-in" style="text-align: center; max-width: 600px;">
+    <h1 style="font-size: 3.5rem; margin-bottom: 1.5rem; background: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Smart Discipline Tracking
+    </h1>
+    <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2rem;">
+        Go beyond simple to-do lists. Track your habits with a priority-based weighted scoring system that measures your real discipline and effort.
+    </p>
+    <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">Start Tracking Today <i class="fa-solid fa-arrow-right"></i></a>
+</div>
+{% endblock %}

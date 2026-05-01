@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project PA</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    
+    {% if current_user.is_authenticated %}
+    <aside class="sidebar">
+        <a href="{{ url_for('dashboard') }}" class="sidebar-header">
+            <i class="fa-solid fa-layer-group"></i>
+            Project PA
+        </a>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('dashboard') }}" class="menu-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            <a href="{{ url_for('manage') }}" class="menu-item {% if request.endpoint == 'manage' %}active{% endif %}">
+                <i class="fa-solid fa-list-check"></i> Manage Tasks
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <div style="display: flex; align-items: center; gap: 1rem; color: var(--text-muted); margin-bottom: 1rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ current_user.name[0]|upper }}
+                </div>
+                <div>
+                    <div style="color: var(--text-main); font-weight: 500; font-size: 0.9rem;">{{ current_user.name }}</div>
+                    <div style="font-size: 0.75rem;">{{ current_user.email }}</div>
+                </div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger" style="width: 100%;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <main class="main-content">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% else %}
+    
+    <main class="auth-layout">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        {% block auth_content %}{% endblock %}
+    </main>
+
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p style="color: var(--text-muted);">Track your daily progress and manage your discipline.</p>
+    </div>
+    
+    <!-- Date Navigator -->
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <a href="{{ url_for('dashboard', date=prev_date) }}" class="btn" style="background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color);"><i class="fa-solid fa-chevron-left"></i></a>
+        <div style="font-weight: 600; font-size: 1.1rem; padding: 0.5rem 1rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
+            <i class="fa-regular fa-calendar" style="color: var(--primary); margin-right: 0.5rem;"></i> {{ current_date }}
+        </div>
+        <a href="{{ url_for('dashboard', date=next_date) }}" class="btn" style="background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color);"><i class="fa-solid fa-chevron-right"></i></a>
+    </div>
+</div>
+
+<div class="dashboard-grid animate-fade-in" style="animation-delay: 0.1s;">
+    <!-- Main Column: Tasks & Chart -->
+    <div class="main-column">
+        
+        <!-- Add Task Form -->
+        <form action="{{ url_for('add_task') }}" method="POST" class="add-task-row">
+            <input type="hidden" name="current_date" value="{{ current_date }}">
+            <input type="text" name="title" class="form-control" placeholder="What needs to be done?" required style="flex: 2;">
+            
+            <select name="priority" class="form-control" required style="flex: 1;">
+                <option value="High">🔴 High Priority</option>
+                <option value="Medium">🟠 Medium Priority</option>
+                <option value="Low">🔵 Low Priority</option>
+            </select>
+
+            <select name="recurrence" class="form-control" required style="flex: 1;">
+                <option value="daily">Every Day</option>
+                <option value="one-time">One Time Only</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add</button>
+        </form>
+
+        <!-- Task List -->
+        <div class="task-list" style="margin-bottom: 2rem;">
+            {% for instance in instances %}
+            <div class="task-item status-{{ instance.status }}">
+                <div class="task-info">
+                    <div style="color: var(--text-muted); font-size: 1.2rem;">
+                        {% if instance.status == 'Full' %}<i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
+                        {% elif instance.status == 'Half' %}<i class="fa-solid fa-circle-half-stroke" style="color: var(--warning);"></i>
+                        {% elif instance.status == 'Missed' %}<i class="fa-solid fa-circle-xmark" style="color: var(--danger);"></i>
+                        {% else %}<i class="fa-regular fa-circle"></i>{% endif %}
+                    </div>
+                    <div>
+                        <div class="task-title" style="{% if instance.status in ['Full', 'Missed'] %}text-decoration: line-through; opacity: 0.7;{% endif %}">
+                            {{ instance.task.title }}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.3rem;">
+                            <span class="badge badge-{{ instance.task.priority|lower }}">{{ instance.task.priority }}</span>
+                            <span class="badge badge-recurrence">{{ instance.task.recurrence_type }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <a href="{{ url_for('update_task_instance', instance_id=instance.id, status='Full') }}" class="action-btn action-full" title="Mark Full"><i class="fa-solid fa-check"></i></a>
+                    <a href="{{ url_for('update_task_instance', instance_id=instance.id, status='Half') }}" class="action-btn action-half" title="Mark Half"><i class="fa-solid fa-star-half-stroke"></i></a>
+                    <a href="{{ url_for('update_task_instance', instance_id=instance.id, status='Missed') }}" class="action-btn action-miss" title="Mark Missed"><i class="fa-solid fa-xmark"></i></a>
+                </div>
+            </div>
+            {% else %}
+            <div class="card" style="text-align: center; padding: 3rem; border: 2px dashed var(--border-color); background: transparent;">
+                <i class="fa-regular fa-clipboard" style="font-size: 3rem; color: var(--border-color); margin-bottom: 1rem;"></i>
+                <h3 style="color: var(--text-muted);">No tasks scheduled for this day</h3>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Progress Chart Container -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 600;">Discipline Overview</h3>
+                <div style="display: flex; gap: 0.5rem; background: var(--bg-main); padding: 0.25rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <button onclick="loadChart(7)" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: transparent; color: var(--text-muted);">7D</button>
+                    <button onclick="loadChart(30)" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: transparent; color: var(--text-muted);">30D</button>
+                    <button onclick="loadChart(365)" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: transparent; color: var(--text-muted);">1Y</button>
+                </div>
+            </div>
+            <canvas id="progressChart" width="400" height="150"></canvas>
+        </div>
+    </div>
+
+    <!-- Side Column: Stats -->
+    <div class="side-column">
+        <div class="card" style="margin-bottom: 1.5rem; border-top: 4px solid var(--primary);">
+            <div style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-transform: uppercase;">Daily Score</div>
+            <div class="stat-value">{{ "%.1f"|format(daily_score) }}</div>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--warning);">
+            <div style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-transform: uppercase;">Current Streak</div>
+            <div class="stat-value" style="color: var(--warning);">{{ streak }} <i class="fa-solid fa-fire"></i></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chartInstance = null;
+
+    async function loadChart(days) {
+        const response = await fetch(`/progress_data?days=${days}`);
+        const data = await response.json();
+
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Discipline Score',
+                    data: data.data,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#1e293b',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#94a3b8',
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                        ticks: { color: '#94a3b8', padding: 10 }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { color: '#94a3b8', padding: 10, maxTicksLimit: 7 }
+                    }
+                }
+            }
+        });
+    }
+
+    window.onload = () => loadChart(7);
+</script>
+{% endblock %}
