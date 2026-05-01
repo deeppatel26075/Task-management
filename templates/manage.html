@@ -3,11 +3,14 @@
 <div class="page-header animate-fade-in">
     <div>
         <h1 class="page-title">Manage Tasks</h1>
-        <p style="color: var(--text-muted);">View, edit, and delete your master task definitions.</p>
+        <p class="page-subtitle">View and delete your master task definitions.</p>
     </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add Task on Dashboard
+    </a>
 </div>
 
-<div class="card animate-fade-in" style="animation-delay: 0.1s;">
+<div class="card animate-fade-in d1">
     <div class="table-container">
         <table>
             <thead>
@@ -15,34 +18,30 @@
                     <th>Task Name</th>
                     <th>Priority</th>
                     <th>Recurrence</th>
+                    <th>Points</th>
                     <th>Created On</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for task in tasks %}
                 <tr>
-                    <td style="font-weight: 500;">{{ task.title }}</td>
-                    <td>
-                        <span class="badge badge-{{ task.priority|lower }}">{{ task.priority }}</span>
-                    </td>
-                    <td>
-                        <span class="badge badge-recurrence">{{ task.recurrence_type|title }}</span>
-                    </td>
-                    <td style="color: var(--text-muted);">
-                        {{ task.date_created.strftime('%b %d, %Y') }}
-                    </td>
-                    <td style="text-align: right;">
-                        <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="return confirm('Are you sure you want to delete this master task? This will remove all its instances forever.')">
+                    <td style="font-weight:600;">{{ task.title }}</td>
+                    <td><span class="badge badge-{{ task.priority|lower }}">{{ task.priority }}</span></td>
+                    <td><span class="badge badge-recurrence">{{ task.recurrence_type|title }}</span></td>
+                    <td style="font-weight:700; color:var(--primary);">{{ task.point_value }}pts</td>
+                    <td style="color:var(--text-muted); font-size:0.85rem;">{{ task.date_created.strftime('%b %d, %Y') }}</td>
+                    <td style="text-align:right;">
+                        <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-danger" style="padding:0.4rem 0.85rem; font-size:0.8rem;" onclick="return confirm('Delete this task and all its history forever?')">
                             <i class="fa-solid fa-trash"></i> Delete
                         </a>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
-                        <i class="fa-regular fa-folder-open" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--border-color);"></i>
-                        <br>You haven't created any tasks yet. Head over to the Dashboard to create one!
+                    <td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">
+                        <i class="fa-regular fa-folder-open" style="font-size:2rem; margin-bottom:0.75rem; display:block; color:var(--border-color);"></i>
+                        No tasks yet — go to Dashboard to create your first one.
                     </td>
                 </tr>
                 {% endfor %}

@@ -1,29 +1,41 @@
 {% extends "base.html" %}
 {% block auth_content %}
-<div class="auth-card card animate-fade-in">
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <h1 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-layer-group"></i> Project PA</h1>
-        <p style="color: var(--text-muted);">Create your account</p>
+<div class="auth-card animate-fade-in">
+    <div style="text-align:center; margin-bottom:2rem;">
+        <div style="display:inline-flex; align-items:center; gap:0.6rem; margin-bottom:1.25rem;">
+            <div class="sidebar-logo-icon" style="width:44px; height:44px; font-size:1.2rem;"><i class="fa-solid fa-bolt"></i></div>
+            <div>
+                <div style="font-size:1.2rem; font-weight:800; letter-spacing:-0.02em; color:var(--text-main);">Project PA</div>
+                <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Discipline Intelligence</div>
+            </div>
+        </div>
+        <h2 style="font-size:1.5rem; font-weight:700; margin-bottom:0.35rem;">Start your journey</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem;">Create your free account and begin building discipline.</p>
     </div>
-    
-    <form method="POST" action="{{ url_for('register') }}">
-        <div style="margin-bottom: 1.5rem;">
-            <label for="name" style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Full Name</label>
-            <input type="text" id="name" name="name" class="form-control" required>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-            <label for="email" style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Email Address</label>
-            <input type="email" id="email" name="email" class="form-control" required>
-        </div>
-        <div style="margin-bottom: 1.5rem;">
-            <label for="password" style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Password</label>
-            <input type="password" id="password" name="password" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">Sign Up</button>
-    </form>
-    
-    <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">
-        Already have an account? <a href="{{ url_for('login') }}" style="color: var(--primary); text-decoration: none; font-weight: 500;">Login</a>
-    </p>
+
+    <div class="auth-glass">
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="name"><i class="fa-solid fa-user" style="margin-right:0.4rem;"></i> Full Name</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email"><i class="fa-solid fa-envelope" style="margin-right:0.4rem;"></i> Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password"><i class="fa-solid fa-lock" style="margin-right:0.4rem;"></i> Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Choose a password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:0.85rem; font-size:1rem; margin-top:0.5rem;">
+                Create Account <i class="fa-solid fa-bolt"></i>
+            </button>
+        </form>
+
+        <p style="text-align:center; margin-top:1.5rem; font-size:0.88rem; color:var(--text-muted);">
+            Already have an account?
+            <a href="{{ url_for('login') }}" style="color:var(--primary); font-weight:600; text-decoration:none;">Sign in</a>
+        </p>
+    </div>
 </div>
 {% endblock %}

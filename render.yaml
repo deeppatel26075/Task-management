@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: project-pa
+    env: docker
+    plan: free
+    dockerCommand: gunicorn --bind 0.0.0.0:$PORT app:app

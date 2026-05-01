@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title">Analytics</h1>
+        <p class="page-subtitle">Your discipline intelligence — last 30 days</p>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+    </a>
+</div>
+
+<!-- Insights Row -->
+<div class="insights-row animate-fade-in d1">
+    <div class="insight-card">
+        <div class="insight-label">Avg Daily Score</div>
+        <div class="insight-value" style="color:var(--primary);">{{ avg_score }}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">pts / day</div>
+    </div>
+    <div class="insight-card">
+        <div class="insight-label">Best Score</div>
+        <div class="insight-value" style="color:var(--success);">{{ best_score }}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">on {{ best_day }}</div>
+    </div>
+    <div class="insight-card">
+        <div class="insight-label">Active Days</div>
+        <div class="insight-value" style="color:var(--accent2);">{{ active_days }}/30</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">days with tasks</div>
+    </div>
+    <div class="insight-card">
+        <div class="insight-label">Current Streak</div>
+        <div class="insight-value" style="color:var(--warning);">{{ streak }} <i class="fa-solid fa-fire" style="font-size:1.2rem;"></i></div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">{{ discipline_tier }}</div>
+    </div>
+    <div class="insight-card">
+        <div class="insight-label">Tasks Tracked</div>
+        <div class="insight-value" style="color:var(--text-main);">{{ total_tasks_tracked }}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">instances (30d)</div>
+    </div>
+</div>
+
+<!-- 30-Day Heatmap -->
+<div class="card animate-fade-in d2" style="margin-bottom:1.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+        <div>
+            <h3 style="font-size:1rem; font-weight:700;">Activity Heatmap</h3>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">Score intensity over the last 30 days</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.72rem; color:var(--text-muted);">
+            Less
+            <div class="heatmap-cell" data-level="0" style="width:14px; height:14px;"></div>
+            <div class="heatmap-cell" data-level="1" style="width:14px; height:14px;"></div>
+            <div class="heatmap-cell" data-level="2" style="width:14px; height:14px;"></div>
+            <div class="heatmap-cell" data-level="3" style="width:14px; height:14px;"></div>
+            <div class="heatmap-cell" data-level="4" style="width:14px; height:14px;"></div>
+            <div class="heatmap-cell" data-level="5" style="width:14px; height:14px;"></div>
+            More
+        </div>
+    </div>
+    <div class="heatmap-grid" id="heatmapGrid"></div>
+</div>
+
+<!-- Bottom Analytics Grid -->
+<div class="analytics-grid animate-fade-in d3">
+
+    <!-- Score Trend Chart -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+            <div>
+                <h3 style="font-size:1rem; font-weight:700;">Score Trend</h3>
+                <p style="font-size:0.78rem; color:var(--text-muted);">Daily score with average line</p>
+            </div>
+            <div class="chart-tabs">
+                <button class="chart-tab active" onclick="loadTrend(7, this)">7D</button>
+                <button class="chart-tab" onclick="loadTrend(30, this)">30D</button>
+                <button class="chart-tab" onclick="loadTrend(90, this)">90D</button>
+            </div>
+        </div>
+        <canvas id="trendChart" height="180"></canvas>
+    </div>
+
+    <!-- Priority Breakdown -->
+    <div class="card">
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.4rem;">Completion by Priority</h3>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1.5rem;">Full completion rate per priority tier</p>
+
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-label">
+                <span><span style="color:#fca5a5;">●</span> High Priority</span>
+                <span style="font-weight:700; color:var(--text-main);">{{ high_pct }}% <span style="color:var(--text-muted); font-weight:400;">({{ high_done }}/{{ high_total }})</span></span>
+            </div>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" style="width:{{ high_pct }}%; background:linear-gradient(90deg, #ef4444, #fca5a5);"></div>
+            </div>
+        </div>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-label">
+                <span><span style="color:#fcd34d;">●</span> Medium Priority</span>
+                <span style="font-weight:700; color:var(--text-main);">{{ med_pct }}% <span style="color:var(--text-muted); font-weight:400;">({{ med_done }}/{{ med_total }})</span></span>
+            </div>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" style="width:{{ med_pct }}%; background:linear-gradient(90deg, #f59e0b, #fcd34d);"></div>
+            </div>
+        </div>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-label">
+                <span><span style="color:#67e8f9;">●</span> Low Priority</span>
+                <span style="font-weight:700; color:var(--text-main);">{{ low_pct }}% <span style="color:var(--text-muted); font-weight:400;">({{ low_done }}/{{ low_total }})</span></span>
+            </div>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" style="width:{{ low_pct }}%; background:linear-gradient(90deg, #06b6d4, #67e8f9);"></div>
+            </div>
+        </div>
+
+        <!-- Tier Progression -->
+        <div style="margin-top:1.75rem; padding-top:1.25rem; border-top:1px solid var(--border-color);">
+            <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:600; margin-bottom:0.85rem;">Discipline Tier Progress</div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                <span class="tier-badge tier-beginner" style="font-size:0.7rem; padding:0.3rem 0.75rem;"><i class="fa-solid fa-seedling"></i> Beginner</span>
+                <span class="tier-badge tier-consistent" style="font-size:0.7rem; padding:0.3rem 0.75rem;"><i class="fa-solid fa-bolt"></i> Consistent</span>
+                <span class="tier-badge tier-elite" style="font-size:0.7rem; padding:0.3rem 0.75rem;"><i class="fa-solid fa-crown"></i> Elite</span>
+            </div>
+            <div class="progress-bar-track" style="height:10px;">
+                <div class="progress-bar-fill" style="width:{{ [(streak / 14 * 100), 100]|min|round }}%; background:linear-gradient(90deg, var(--primary), var(--accent));"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted); margin-top:0.4rem;">
+                <span>0 days</span>
+                <span>5 days</span>
+                <span>14 days</span>
+            </div>
+            {% if tier_next %}
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.6rem; text-align:center;">
+                <strong style="color:var(--primary);">{{ tier_next - streak }}</strong> more streak day{{ 's' if (tier_next - streak) != 1 }} to reach the next tier
+            </p>
+            {% else %}
+            <p style="font-size:0.78rem; color:var(--warning); margin-top:0.6rem; text-align:center; font-weight:600;">
+                <i class="fa-solid fa-crown"></i> Elite tier achieved! Keep the streak alive.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Heatmap
+const heatmapData = {{ heatmap | tojson }};
+const grid = document.getElementById('heatmapGrid');
+heatmapData.forEach(d => {
+    const cell = document.createElement('div');
+    cell.className = 'heatmap-cell';
+    cell.setAttribute('data-level', d.level);
+    cell.title = `${d.date}: ${d.score} pts`;
+    grid.appendChild(cell);
+});
+
+// Trend Chart
+let trendChart = null;
+async function loadTrend(days, btn) {
+    document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const res = await fetch(`/analytics_data?days=${days}`);
+    const d = await res.json();
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    if (trendChart) trendChart.destroy();
+    const avgArr = d.data.map(() => d.avg);
+    trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: d.labels,
+            datasets: [
+                {
+                    label: 'Score',
+                    data: d.data,
+                    borderColor: '#6366f1',
+                    backgroundColor: (ctx) => {
+                        const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 220);
+                        g.addColorStop(0, 'rgba(99,102,241,0.2)');
+                        g.addColorStop(1, 'rgba(99,102,241,0)');
+                        return g;
+                    },
+                    borderWidth: 2, fill: true, tension: 0.4,
+                    pointBackgroundColor: '#080e1a', pointBorderColor: '#6366f1', pointBorderWidth: 2, pointRadius: 3, pointHoverRadius: 5
+                },
+                {
+                    label: 'Average',
+                    data: avgArr,
+                    borderColor: 'rgba(245,158,11,0.6)',
+                    borderWidth: 1.5, borderDash: [5, 4],
+                    pointRadius: 0, fill: false, tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: '#111827', titleColor: '#f1f5f9', bodyColor: '#64748b', borderColor: '#1e2d45', borderWidth: 1, padding: 10 }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false }, ticks: { color: '#64748b', font: { size: 11 } } },
+                x: { grid: { display: false, drawBorder: false }, ticks: { color: '#64748b', font: { size: 11 }, maxTicksLimit: 8 } }
+            }
+        }
+    });
+}
+window.onload = () => loadTrend(30, document.querySelector('.chart-tab'));
+</script>
+{% endblock %}

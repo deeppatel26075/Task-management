@@ -1,12 +1,55 @@
 {% extends "base.html" %}
 {% block auth_content %}
-<div class="auth-card animate-fade-in" style="text-align: center; max-width: 600px;">
-    <h1 style="font-size: 3.5rem; margin-bottom: 1.5rem; background: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        Smart Discipline Tracking
-    </h1>
-    <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2rem;">
-        Go beyond simple to-do lists. Track your habits with a priority-based weighted scoring system that measures your real discipline and effort.
-    </p>
-    <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">Start Tracking Today <i class="fa-solid fa-arrow-right"></i></a>
+<div class="landing-layout">
+    <div style="text-align:center; max-width:780px;" class="animate-fade-in">
+
+        <div style="display:inline-flex; align-items:center; gap:0.6rem; background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25); border-radius:999px; padding:0.4rem 1.1rem; font-size:0.8rem; color:#a5b4fc; font-weight:600; margin-bottom:1.75rem; text-transform:uppercase; letter-spacing:0.08em;">
+            <i class="fa-solid fa-bolt" style="color:#6366f1;"></i> Discipline Intelligence System
+        </div>
+
+        <h1 class="hero-title" style="margin-bottom:1.5rem;">
+            Track Discipline.<br>Not Just Tasks.
+        </h1>
+
+        <p class="hero-sub" style="margin:0 auto 2.5rem;">
+            Project PA uses a <strong style="color:#a5b4fc;">priority-weighted scoring engine</strong> with partial credit logic to measure your real effort — not just whether something is done, but <em>how well</em> you showed up.
+        </p>
+
+        <div style="display:flex; gap:1rem; justify-content:center; margin-bottom:3.5rem; flex-wrap:wrap;">
+            <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size:1rem; padding:0.85rem 2rem;">
+                Start Tracking <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary" style="font-size:1rem; padding:0.85rem 2rem;">
+                Sign In
+            </a>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card animate-slide-up d1">
+                <div class="feature-icon">⚖️</div>
+                <div class="feature-title">Weighted Scoring</div>
+                <div class="feature-desc">High = 20pts, Medium = 10pts, Low = 5pts. Miss a task and lose points. Your score reflects your real priorities.</div>
+            </div>
+            <div class="feature-card animate-slide-up d2">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Partial Completion</div>
+                <div class="feature-desc">Mark tasks as Full, Half, or Missed. Half completion earns 50% — because effort still counts.</div>
+            </div>
+            <div class="feature-card animate-slide-up d3">
+                <div class="feature-icon">🔥</div>
+                <div class="feature-title">Streak System</div>
+                <div class="feature-desc">Build your streak by completing all High-priority tasks. Rise from Beginner → Consistent → Elite.</div>
+            </div>
+            <div class="feature-card animate-slide-up d4">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Discipline Analytics</div>
+                <div class="feature-desc">30-day heatmaps, score trends, priority breakdowns. See exactly where you're winning and losing.</div>
+            </div>
+        </div>
+
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-top:1rem;">
+            Free to use · No credit card required · Built for disciplined builders
+        </p>
+    </div>
 </div>
 {% endblock %}
