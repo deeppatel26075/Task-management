@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card animate-fade-in" style="text-align:center; max-width:500px; margin:4rem auto;">
+    <div style="font-size:4rem; color:var(--danger); margin-bottom:1rem;">
+        <i class="fa-solid fa-server"></i>
+    </div>
+    <h1 style="font-size:2rem; margin-bottom:0.5rem; color:var(--text-main);">500</h1>
+    <p style="color:var(--text-muted); margin-bottom:2rem;">An internal server error occurred. Our team has been notified.</p>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary" style="display:inline-flex; justify-content:center; width:auto; padding:0.8rem 2rem;">
+        <i class="fa-solid fa-arrow-left"></i> Return to Dashboard
+    </a>
+</div>
+{% endblock %}

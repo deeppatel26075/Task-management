@@ -3,4 +3,10 @@ services:
     name: project-pa
     env: docker
     plan: free
-    dockerCommand: gunicorn --bind 0.0.0.0:$PORT app:app
+    healthCheckPath: /
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///project_pa.db
+    dockerCommand: gunicorn --workers 2 --bind 0.0.0.0:$PORT app:app

@@ -12,7 +12,7 @@
 
 {% if current_user.is_authenticated %}
 <aside class="sidebar">
-    <a href="{{ url_for('dashboard') }}" class="sidebar-header" style="text-decoration:none;">
+    <a href="{{ url_for('dashboard.index') }}" class="sidebar-header" style="text-decoration:none;">
         <div class="sidebar-logo-icon"><i class="fa-solid fa-bolt"></i></div>
         <div class="sidebar-logo-text">
             <div class="brand-name">Project PA</div>
@@ -22,13 +22,13 @@
 
     <nav class="sidebar-menu">
         <div class="menu-section-label">Navigation</div>
-        <a href="{{ url_for('dashboard') }}" class="menu-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.index') }}" class="menu-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
             <i class="fa-solid fa-gauge-high"></i> Dashboard
         </a>
-        <a href="{{ url_for('analytics') }}" class="menu-item {% if request.endpoint == 'analytics' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.analytics') }}" class="menu-item {% if request.endpoint == 'dashboard.analytics' %}active{% endif %}">
             <i class="fa-solid fa-chart-column"></i> Analytics
         </a>
-        <a href="{{ url_for('manage') }}" class="menu-item {% if request.endpoint == 'manage' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.manage') }}" class="menu-item {% if request.endpoint == 'dashboard.manage' %}active{% endif %}">
             <i class="fa-solid fa-list-check"></i> Manage Tasks
         </a>
     </nav>
@@ -41,7 +41,7 @@
                 <div class="user-email">{{ current_user.email }}</div>
             </div>
         </div>
-        <a href="{{ url_for('logout') }}" class="btn btn-danger" style="width:100%; justify-content:center;">
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger" style="width:100%; justify-content:center;">
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
         </a>
     </div>

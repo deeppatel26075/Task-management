@@ -9,13 +9,13 @@
         <p class="page-subtitle">Your discipline command center — {{ current_date }}</p>
     </div>
     <div class="date-nav">
-        <a href="{{ url_for('dashboard', date=prev_date) }}" class="btn btn-ghost" style="width:36px; height:36px; padding:0;"><i class="fa-solid fa-chevron-left"></i></a>
+        <a href="{{ url_for('dashboard.index', date=prev_date) }}" class="btn btn-ghost" style="width:36px; height:36px; padding:0;"><i class="fa-solid fa-chevron-left"></i></a>
         <div class="date-display">
             <i class="fa-regular fa-calendar"></i>
             {{ current_date }}
         </div>
-        <a href="{{ url_for('dashboard', date=next_date) }}" class="btn btn-ghost" style="width:36px; height:36px; padding:0;"><i class="fa-solid fa-chevron-right"></i></a>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="font-size:0.8rem;">Today</a>
+        <a href="{{ url_for('dashboard.index', date=next_date) }}" class="btn btn-ghost" style="width:36px; height:36px; padding:0;"><i class="fa-solid fa-chevron-right"></i></a>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary" style="font-size:0.8rem;">Today</a>
     </div>
 </div>
 
@@ -53,7 +53,7 @@
     <div class="main-column">
 
         <!-- Add Task Form -->
-        <form action="{{ url_for('add_task') }}" method="POST" class="add-task-row animate-fade-in d2">
+        <form action="{{ url_for('dashboard.add_task') }}" method="POST" class="add-task-row animate-fade-in d2">
             <input type="hidden" name="current_date" value="{{ current_date }}">
             <input type="text" name="title" class="form-control" placeholder="What needs to get done today?" required style="flex:2;">
             <select name="priority" class="form-control" style="flex:1;">
@@ -96,10 +96,10 @@
                     </div>
                 </div>
                 <div class="task-actions">
-                    <a href="{{ url_for('update_task_instance', instance_id=instance.id, status='Full') }}" class="action-btn action-full" title="Mark Full"><i class="fa-solid fa-check"></i></a>
-                    <a href="{{ url_for('update_task_instance', instance_id=instance.id, status='Half') }}" class="action-btn action-half" title="Half Done"><i class="fa-solid fa-star-half-stroke"></i></a>
-                    <a href="{{ url_for('update_task_instance', instance_id=instance.id, status='Missed') }}" class="action-btn action-miss" title="Missed"><i class="fa-solid fa-xmark"></i></a>
-                    <a href="{{ url_for('delete_task', task_id=instance.task.id, current_date=current_date) }}" class="action-btn" title="Delete" style="margin-left:0.25rem;" onclick="return confirm('Delete this task and all its history?')"><i class="fa-solid fa-trash" style="font-size:0.75rem;"></i></a>
+                    <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Full') }}" class="action-btn action-full" title="Mark Full"><i class="fa-solid fa-check"></i></a>
+                    <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Half') }}" class="action-btn action-half" title="Half Done"><i class="fa-solid fa-star-half-stroke"></i></a>
+                    <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Missed') }}" class="action-btn action-miss" title="Missed"><i class="fa-solid fa-xmark"></i></a>
+                    <a href="{{ url_for('dashboard.delete_task', task_id=instance.task.id, current_date=current_date) }}" class="action-btn" title="Delete" style="margin-left:0.25rem;" onclick="return confirm('Delete this task and all its history?')"><i class="fa-solid fa-trash" style="font-size:0.75rem;"></i></a>
                 </div>
             </div>
             {% else %}
@@ -206,7 +206,7 @@
         </div>
 
         <!-- Quick link to Analytics -->
-        <a href="{{ url_for('analytics') }}" class="card animate-fade-in d3" style="text-decoration:none; display:block; text-align:center; border:1px dashed var(--primary); background:rgba(99,102,241,0.05); transition:all 0.2s;">
+        <a href="{{ url_for('dashboard.analytics') }}" class="card animate-fade-in d3" style="text-decoration:none; display:block; text-align:center; border:1px dashed var(--primary); background:rgba(99,102,241,0.05); transition:all 0.2s;">
             <i class="fa-solid fa-chart-column" style="font-size:1.5rem; color:var(--primary); margin-bottom:0.5rem; display:block;"></i>
             <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">View Analytics</div>
             <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.25rem;">30-day heatmap & insights</div>

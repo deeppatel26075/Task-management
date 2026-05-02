@@ -5,7 +5,7 @@
         <h1 class="page-title">Manage Tasks</h1>
         <p class="page-subtitle">View and delete your master task definitions.</p>
     </div>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
         <i class="fa-solid fa-plus"></i> Add Task on Dashboard
     </a>
 </div>
@@ -32,7 +32,7 @@
                     <td style="font-weight:700; color:var(--primary);">{{ task.point_value }}pts</td>
                     <td style="color:var(--text-muted); font-size:0.85rem;">{{ task.date_created.strftime('%b %d, %Y') }}</td>
                     <td style="text-align:right;">
-                        <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-danger" style="padding:0.4rem 0.85rem; font-size:0.8rem;" onclick="return confirm('Delete this task and all its history forever?')">
+                        <a href="{{ url_for('dashboard.delete_task', task_id=task.id) }}" class="btn btn-danger" style="padding:0.4rem 0.85rem; font-size:0.8rem;" onclick="return confirm('Delete this task and all its history forever?')">
                             <i class="fa-solid fa-trash"></i> Delete
                         </a>
                     </td>
