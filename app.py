@@ -97,6 +97,13 @@ def create_app(config: dict | None = None) -> Flask:
     def load_user(user_id: str):
         return db.session.get(User, int(user_id))
 
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        from flask import request, jsonify
+        if request.path.startswith('/api/'):
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+        return redirect(url_for(login_manager.login_view))
+
     # ── Blueprints ─────────────────────────────────────────────────────────
     from routes.auth_routes      import auth_bp
     from routes.dashboard_routes import dashboard_bp
