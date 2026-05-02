@@ -293,3 +293,37 @@ def analytics_data():
 
     avg = round(sum(data) / len(data), 1) if data else 0
     return jsonify({"labels": labels, "data": data, "avg": avg})
+
+
+# ---------------------------------------------------------------------------
+# Profile
+# ---------------------------------------------------------------------------
+@dashboard_bp.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+
+        if name:
+            current_user.name = name
+        if email:
+            current_user.email = email
+        if password:
+            from werkzeug.security import generate_password_hash
+            current_user.password_hash = generate_password_hash(password, method="scrypt")
+            
+        db.session.commit()
+        from flask import flash
+        flash("Profile updated successfully!", "success")
+        return redirect(url_for("dashboard.profile"))
+
+    # Calculate lifetime points
+    scores = Score.query.filter_by(user_id=current_user.id).all()
+    total_points = sum(s.daily_score for s in scores)
+
+    return render_template(
+        "profile.html",
+        total_points=int(total_points)
+    )

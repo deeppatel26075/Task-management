@@ -45,6 +45,20 @@ project-pa/
     └── scoring_service.py  # Discipline Evaluation Engine (Business Logic)
 ```
 
+## 🏗️ Architecture & System Design Decisions
+
+1. **Why Flask Factories & Blueprints?**
+   The application avoids global state. Using the Application Factory pattern (`create_app`) allows for cleaner testing, isolated configurations, and prevents circular imports. Blueprints cleanly separate `auth`, `dashboard`, and `api` logic.
+
+2. **Why a Background Scheduler (`APScheduler`)?**
+   Most student projects calculate data on-the-fly when a user loads a page, which fails at scale. Project PA runs a nightly cron-job to automatically evaluate the previous day's scores and generate the next day's task instances in the database. This decouples analytics processing from the web request cycle.
+
+3. **Why SQLite (but ready for Postgres)?**
+   SQLite is used for zero-configuration local development. However, the database layer strictly uses SQLAlchemy ORM without raw SQLite queries. This guarantees that deploying to a production PostgreSQL database simply requires changing the `DATABASE_URL` environment variable.
+
+4. **Why a Dedicated Scoring Engine?**
+   Logic is stripped out of the HTTP routing layer and placed into `services/scoring_service.py`. This ensures the API endpoints, the web dashboard, and the background job runner can all invoke the exact same discipline calculation logic without duplicating code.
+
 ## 🛠️ Tech Stack
 
 | Category | Technology |

@@ -129,6 +129,12 @@ def create_app(config: dict | None = None) -> Flask:
     _configure_logging(app)
     app.logger.info("Project PA started — debug=%s", app.debug)
 
+    # ── Background Jobs ────────────────────────────────────────────────────
+    # Do not start scheduler in testing mode or Flask CLI commands to avoid duplicate runs
+    if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        from services.scheduler import init_scheduler
+        init_scheduler(app)
+
     return app
 
 

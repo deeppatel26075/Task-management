@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header animate-slide-down">
+    <div>
+        <h1 class="page-title">User Profile</h1>
+        <p class="page-subtitle">Manage your account and view lifetime stats</p>
+    </div>
+</div>
+
+<div class="stats-grid animate-slide-up d1" style="margin-bottom:2rem;">
+    <div class="stat-card">
+        <div class="stat-label">Lifetime Points</div>
+        <div class="stat-value" style="color:var(--primary);">{{ total_points }}</div>
+        <div class="stat-meta">Total discipline points earned</div>
+        <i class="fa-solid fa-bolt stat-icon"></i>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Current Tier</div>
+        <div class="stat-value" style="color:var(--accent);">{{ current_user.discipline_tier }}</div>
+        <div class="stat-meta">Based on current streak</div>
+        <i class="fa-solid fa-medal stat-icon"></i>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Member Since</div>
+        <div class="stat-value" style="color:var(--success); font-size:1.5rem; line-height:2rem; margin:0.5rem 0;">{{ current_user.date_created.strftime('%b %Y') if current_user.date_created else 'N/A' }}</div>
+        <div class="stat-meta">When you started tracking</div>
+        <i class="fa-solid fa-calendar stat-icon"></i>
+    </div>
+</div>
+
+<div class="main-layout">
+    <div class="main-column animate-slide-up d2">
+        <div class="card">
+            <h2 style="margin-top:0; margin-bottom:1.5rem; font-size:1.2rem; color:var(--text-main);"><i class="fa-solid fa-user-pen" style="color:var(--primary); margin-right:0.5rem;"></i> Edit Profile</h2>
+            
+            <form action="{{ url_for('dashboard.profile') }}" method="POST">
+                <div class="form-group">
+                    <label class="form-label" for="name">Full Name</label>
+                    <input type="text" id="name" name="name" class="form-control" value="{{ current_user.name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" value="{{ current_user.email }}" required>
+                </div>
+                
+                <hr style="border:none; border-top:1px solid rgba(255,255,255,0.05); margin:1.5rem 0;">
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">New Password (leave blank to keep current)</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="margin-top:0.5rem;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

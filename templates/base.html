@@ -31,6 +31,9 @@
         <a href="{{ url_for('dashboard.manage') }}" class="menu-item {% if request.endpoint == 'dashboard.manage' %}active{% endif %}">
             <i class="fa-solid fa-list-check"></i> Manage Tasks
         </a>
+        <a href="{{ url_for('dashboard.profile') }}" class="menu-item {% if request.endpoint == 'dashboard.profile' %}active{% endif %}">
+            <i class="fa-solid fa-user"></i> User Profile
+        </a>
     </nav>
 
     <div class="sidebar-footer">
