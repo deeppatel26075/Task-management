@@ -5,6 +5,11 @@
         <h1 class="page-title">User Profile</h1>
         <p class="page-subtitle">Manage your account and view lifetime stats</p>
     </div>
+    {% if current_user.is_admin %}
+    <a href="{{ url_for('admin.users') }}" class="btn btn-primary" style="background:var(--accent);">
+        <i class="fa-solid fa-shield-halved"></i> Admin Panel
+    </a>
+    {% endif %}
 </div>
 
 <div class="stats-grid animate-slide-up d1" style="margin-bottom:2rem;">
@@ -21,10 +26,10 @@
         <i class="fa-solid fa-medal stat-icon"></i>
     </div>
     <div class="stat-card">
-        <div class="stat-label">Member Since</div>
-        <div class="stat-value" style="color:var(--success); font-size:1.5rem; line-height:2rem; margin:0.5rem 0;">{{ current_user.date_created.strftime('%b %Y') if current_user.date_created else 'N/A' }}</div>
-        <div class="stat-meta">When you started tracking</div>
-        <i class="fa-solid fa-calendar stat-icon"></i>
+        <div class="stat-label">Account Role</div>
+        <div class="stat-value" style="color:var(--success); font-size:1.5rem; line-height:2rem; margin:0.5rem 0;">{{ current_user.role|capitalize }}</div>
+        <div class="stat-meta">Access permissions</div>
+        <i class="fa-solid fa-user-shield stat-icon"></i>
     </div>
 </div>
 
@@ -42,6 +47,18 @@
                 <div class="form-group">
                     <label class="form-label" for="email">Email Address</label>
                     <input type="email" id="email" name="email" class="form-control" value="{{ current_user.email }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="bio">Bio</label>
+                    <textarea id="bio" name="bio" class="form-control" rows="3" placeholder="Tell us about yourself">{{ current_user.bio or '' }}</textarea>
+                </div>
+
+                <div class="form-group" style="display:flex; align-items:center; gap:0.75rem; margin:1rem 0;">
+                    <input type="checkbox" id="email_notifications" name="email_notifications" style="width:1.2rem; height:1.2rem;" {% if current_user.email_notifications %}checked{% endif %}>
+                    <label class="form-label" for="email_notifications" style="margin:0; cursor:pointer;">
+                        Enable evening email notifications (Streak alerts & personal bests)
+                    </label>
                 </div>
                 
                 <hr style="border:none; border-top:1px solid rgba(255,255,255,0.05); margin:1.5rem 0;">

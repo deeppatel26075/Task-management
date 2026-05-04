@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-user-plus" style="color:#a78bfa;"></i> Assign Task</h1>
+        <p class="page-subtitle">Create a task and assign it to any user</p>
+    </div>
+    <a href="{{ url_for('admin.users') }}" class="btn" style="background:rgba(255,255,255,0.06); color:#94a3b8;">
+        <i class="fa-solid fa-arrow-left"></i> Back to Users
+    </a>
+</div>
+
+<div class="card" style="max-width:600px;">
+    <div class="card-header">
+        <h2 style="margin:0; font-size:1rem; color:#e2e8f0;">
+            <i class="fa-solid fa-clipboard-list" style="color:#a78bfa; margin-right:8px;"></i>New Assigned Task
+        </h2>
+    </div>
+    <form method="POST" style="padding:24px; display:flex; flex-direction:column; gap:16px;">
+
+        <div class="form-group">
+            <label class="form-label">Assign To <span style="color:#f87171;">*</span></label>
+            <select name="assign_to" class="form-input" required>
+                <option value="">— Select user —</option>
+                {% for u in users %}
+                <option value="{{ u.id }}">{{ u.name }} ({{ u.email }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Task Title <span style="color:#f87171;">*</span></label>
+            <input type="text" name="title" class="form-input" placeholder="e.g. Complete project report" required>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Priority <span style="color:#f87171;">*</span></label>
+                <select name="priority" class="form-input" required>
+                    <option value="">— Select —</option>
+                    <option value="High">🔴 High (20 pts)</option>
+                    <option value="Medium">🟡 Medium (10 pts)</option>
+                    <option value="Low">🟢 Low (5 pts)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Recurrence</label>
+                <select name="recurrence" class="form-input">
+                    <option value="one-time">One-time</option>
+                    <option value="daily">Daily</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Category</label>
+            <input type="text" name="category" class="form-input" placeholder="e.g. Work, Health, Study">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-input" rows="3"
+                      placeholder="Optional task details..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-top:8px;">
+            <i class="fa-solid fa-paper-plane"></i> Assign Task
+        </button>
+    </form>
+</div>
+
+<style>
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-label { font-size:0.85rem; color:#94a3b8; font-weight:500; }
+.form-input { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+              border-radius:8px; padding:10px 14px; color:#e2e8f0; font-size:0.9rem;
+              transition:border-color 0.2s; outline:none; resize:vertical; }
+.form-input:focus { border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,0.15); }
+.form-input option { background:#1e1e2e; }
+</style>
+{% endblock %}

@@ -37,6 +37,7 @@ def login():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    import re
     if current_user.is_authenticated:
         return redirect(url_for("dashboard.index"))
 
@@ -45,8 +46,25 @@ def register():
         email    = request.form.get("email", "").strip()
         password = request.form.get("password", "")
 
+        # ── Name Validation ────────────────────────────────────────────────
+        if not name or len(name) < 2 or len(name) > 100:
+            flash("Name must be between 2 and 100 characters.", "error")
+            return redirect(url_for("auth.register"))
+
+        # ── Email Validation ───────────────────────────────────────────────
+        email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        if not email or len(email) > 120 or not re.match(email_regex, email):
+            flash("Please enter a valid email address.", "error")
+            return redirect(url_for("auth.register"))
+
+        # ── Password Validation ────────────────────────────────────────────
+        if not password or len(password) < 8:
+            flash("Password must be at least 8 characters long.", "error")
+            return redirect(url_for("auth.register"))
+
+        # ── Check Duplicate User ───────────────────────────────────────────
         if User.query.filter_by(email=email).first():
-            flash("Email already registered", "error")
+            flash("This email is already registered.", "error")
             return redirect(url_for("auth.register"))
 
         user = User(

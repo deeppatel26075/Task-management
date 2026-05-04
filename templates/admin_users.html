@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-shield-halved" style="color:#a78bfa;"></i> Admin Panel</h1>
+        <p class="page-subtitle">Manage users, roles, and system health</p>
+    </div>
+    <a href="{{ url_for('admin.assign_task') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Assign Task
+    </a>
+</div>
+
+<!-- System stats cards -->
+<div class="stats-grid" id="admin-stats-grid">
+    <div class="stat-card" id="stat-total-users">
+        <div class="stat-icon" style="background:rgba(139,92,246,0.15);">
+            <i class="fa-solid fa-users" style="color:#a78bfa;"></i>
+        </div>
+        <div class="stat-value" id="sv-users">—</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(16,185,129,0.15);">
+            <i class="fa-solid fa-list-check" style="color:#34d399;"></i>
+        </div>
+        <div class="stat-value" id="sv-tasks">—</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(251,191,36,0.15);">
+            <i class="fa-solid fa-bolt" style="color:#fbbf24;"></i>
+        </div>
+        <div class="stat-value" id="sv-active">—</div>
+        <div class="stat-label">Active Users (7d)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(239,68,68,0.15);">
+            <i class="fa-solid fa-user-shield" style="color:#f87171;"></i>
+        </div>
+        <div class="stat-value" id="sv-admins">—</div>
+        <div class="stat-label">Admins</div>
+    </div>
+</div>
+
+<!-- Users table -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header" style="display:flex; align-items:center; justify-content:space-between;">
+        <h2 style="margin:0; font-size:1.1rem; color:#e2e8f0;">
+            <i class="fa-solid fa-users" style="color:#a78bfa; margin-right:8px;"></i>Registered Users
+        </h2>
+        <span class="badge" style="background:rgba(139,92,246,0.2); color:#a78bfa; padding:4px 12px; border-radius:20px; font-size:0.8rem;">
+            {{ user_stats|length }} total
+        </span>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Streak</th>
+                    <th>Tier</th>
+                    <th>Tasks</th>
+                    <th>Avg Score (30d)</th>
+                    <th>Notifications</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in user_stats %}
+                <tr>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="user-avatar" style="width:32px; height:32px; font-size:0.8rem;">
+                                {{ item.user.name[0]|upper }}
+                            </div>
+                            <span style="font-weight:600; color:#e2e8f0;">{{ item.user.name }}</span>
+                            {% if item.user.id == current_user.id %}
+                            <span style="font-size:0.7rem; background:rgba(139,92,246,0.2); color:#a78bfa; padding:2px 8px; border-radius:10px;">You</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td style="color:#94a3b8; font-size:0.85rem;">{{ item.user.email }}</td>
+                    <td>
+                        <span class="role-badge role-{{ item.user.role }}">
+                            {% if item.user.role == 'admin' %}
+                            <i class="fa-solid fa-shield-halved"></i>
+                            {% else %}
+                            <i class="fa-solid fa-user"></i>
+                            {% endif %}
+                            {{ item.user.role|capitalize }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="color:#fbbf24; font-weight:700;">
+                            🔥 {{ item.user.streak_count }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="tier-badge tier-{{ item.user.discipline_tier|lower }}">
+                            {{ item.user.discipline_tier }}
+                        </span>
+                    </td>
+                    <td style="color:#e2e8f0;">{{ item.task_count }}</td>
+                    <td>
+                        <span style="color:{% if item.avg_score > 20 %}#34d399{% elif item.avg_score > 0 %}#fbbf24{% else %}#f87171{% endif %}; font-weight:700;">
+                            {{ item.avg_score }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="color:{% if item.user.email_notifications %}#34d399{% else %}#f87171{% endif %}; font-size:0.8rem;">
+                            {% if item.user.email_notifications %}
+                            <i class="fa-solid fa-bell"></i> On
+                            {% else %}
+                            <i class="fa-solid fa-bell-slash"></i> Off
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.user.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('admin.change_role', user_id=item.user.id) }}"
+                              style="display:inline;" onsubmit="return confirm('Change role for {{ item.user.name }}?')">
+                            {% if item.user.role == 'user' %}
+                            <input type="hidden" name="role" value="admin">
+                            <button type="submit" class="btn-sm btn-promote">
+                                <i class="fa-solid fa-arrow-up"></i> Promote
+                            </button>
+                            {% else %}
+                            <input type="hidden" name="role" value="user">
+                            <button type="submit" class="btn-sm btn-demote">
+                                <i class="fa-solid fa-arrow-down"></i> Demote
+                            </button>
+                            {% endif %}
+                        </form>
+                        {% else %}
+                        <span style="color:#475569; font-size:0.8rem;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.admin-table { width:100%; border-collapse:collapse; }
+.admin-table th { padding:12px 16px; text-align:left; font-size:0.75rem; text-transform:uppercase;
+                  letter-spacing:0.05em; color:#64748b; border-bottom:1px solid rgba(255,255,255,0.06); }
+.admin-table td { padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; }
+.admin-table tr:last-child td { border-bottom:none; }
+.admin-table tr:hover td { background:rgba(255,255,255,0.02); }
+
+.role-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+              border-radius:20px; font-size:0.78rem; font-weight:600; }
+.role-admin { background:rgba(139,92,246,0.2); color:#a78bfa; }
+.role-user  { background:rgba(100,116,139,0.2); color:#94a3b8; }
+
+.tier-badge { padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; }
+.tier-elite      { background:rgba(251,191,36,0.2); color:#fbbf24; }
+.tier-consistent { background:rgba(16,185,129,0.2); color:#34d399; }
+.tier-beginner   { background:rgba(100,116,139,0.15); color:#94a3b8; }
+
+.btn-sm { padding:5px 12px; border-radius:6px; border:none; cursor:pointer;
+          font-size:0.78rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+.btn-promote { background:rgba(139,92,246,0.2); color:#a78bfa; }
+.btn-promote:hover { background:rgba(139,92,246,0.35); }
+.btn-demote  { background:rgba(239,68,68,0.15); color:#f87171; }
+.btn-demote:hover  { background:rgba(239,68,68,0.3); }
+</style>
+
+<script>
+// Load admin stats via AJAX
+fetch('/admin/api/stats')
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            document.getElementById('sv-users').textContent  = d.data.total_users;
+            document.getElementById('sv-tasks').textContent  = d.data.total_tasks;
+            document.getElementById('sv-active').textContent = d.data.active_users_7d;
+            document.getElementById('sv-admins').textContent = d.data.admin_count;
+        }
+    })
+    .catch(() => {});
+</script>
+{% endblock %}

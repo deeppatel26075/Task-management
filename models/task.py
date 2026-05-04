@@ -23,11 +23,18 @@ class Task(db.Model):
     description           = db.Column(db.Text, nullable=True)
     priority              = db.Column(db.String(20), nullable=False)       # High | Medium | Low
     recurrence_type       = db.Column(db.String(50), default="one-time")   # one-time | daily
+    category              = db.Column(db.String(50), nullable=True)        # e.g. Health, Work, Study
     completion_percentage = db.Column(db.Integer, default=0)               # 0-100
     date_created          = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    # Admin can assign this task to another user
+    assigned_to           = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+
     instances = db.relationship(
         "TaskInstance", backref="task", lazy=True, cascade="all, delete-orphan"
+    )
+    assignee = db.relationship(
+        "User", foreign_keys=[assigned_to], backref="assigned_tasks", lazy=True
     )
 
     @property
@@ -43,9 +50,11 @@ class Task(db.Model):
             "description":           self.description,
             "priority":              self.priority,
             "recurrence_type":       self.recurrence_type,
+            "category":              self.category,
             "completion_percentage": self.completion_percentage,
             "point_value":           self.point_value,
             "date_created":          self.date_created.isoformat(),
+            "assigned_to":           self.assigned_to,
         }
 
 

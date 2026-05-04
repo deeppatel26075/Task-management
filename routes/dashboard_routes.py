@@ -90,25 +90,47 @@ def index():
 @dashboard_bp.route("/add_task", methods=["POST"])
 @login_required
 def add_task():
+    from flask import flash
     title       = request.form.get("title", "").strip()
     priority    = request.form.get("priority")
     recurrence  = request.form.get("recurrence", "one-time")
     current_date = request.form.get("current_date")
 
-    if title and priority in ("High", "Medium", "Low"):
-        task = Task(
-            title=title,
-            priority=priority,
-            recurrence_type=recurrence,
-            user_id=current_user.id,
-        )
-        try:
-            task.date_created = datetime.strptime(current_date, "%Y-%m-%d")
-        except Exception:
-            pass
-        db.session.add(task)
-        db.session.commit()
-        logger.info("Task added: '%s' [%s] by user=%s", title, priority, current_user.id)
+    # ── Title Validation ───────────────────────────────────────────────────
+    if not title or len(title) < 1 or len(title) > 200:
+        flash("Task title must be between 1 and 200 characters.", "error")
+        if current_date:
+            return redirect(url_for("dashboard.index", date=current_date))
+        return redirect(url_for("dashboard.index"))
+
+    # ── Priority Validation ────────────────────────────────────────────────
+    if priority not in ("High", "Medium", "Low"):
+        flash("Invalid task priority selected.", "error")
+        if current_date:
+            return redirect(url_for("dashboard.index", date=current_date))
+        return redirect(url_for("dashboard.index"))
+
+    # ── Recurrence Validation ──────────────────────────────────────────────
+    if recurrence not in ("one-time", "daily"):
+        flash("Invalid recurrence type selected.", "error")
+        if current_date:
+            return redirect(url_for("dashboard.index", date=current_date))
+        return redirect(url_for("dashboard.index"))
+
+    task = Task(
+        title=title,
+        priority=priority,
+        recurrence_type=recurrence,
+        user_id=current_user.id,
+    )
+    try:
+        task.date_created = datetime.strptime(current_date, "%Y-%m-%d")
+    except Exception:
+        pass
+    db.session.add(task)
+    db.session.commit()
+    logger.info("Task added: '%s' [%s] by user=%s", title, priority, current_user.id)
+    flash(f"Task '{title}' created successfully!", "success")
 
     if current_date:
         return redirect(url_for("dashboard.index", date=current_date))
@@ -301,21 +323,54 @@ def analytics_data():
 @dashboard_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
+    import re
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip()
+        bio = request.form.get("bio", "").strip()
         password = request.form.get("password", "")
+        email_notifications = "email_notifications" in request.form
 
-        if name:
-            current_user.name = name
-        if email:
-            current_user.email = email
+        from flask import flash
+
+        # ── Name Validation ────────────────────────────────────────────────
+        if not name or len(name) < 2 or len(name) > 100:
+            flash("Name must be between 2 and 100 characters.", "error")
+            return redirect(url_for("dashboard.profile"))
+
+        # ── Email Validation ───────────────────────────────────────────────
+        email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        if not email or len(email) > 120 or not re.match(email_regex, email):
+            flash("Please enter a valid email address.", "error")
+            return redirect(url_for("dashboard.profile"))
+
+        # ── Duplicate Email Check ──────────────────────────────────────────
+        from models.user import User
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user and existing_user.id != current_user.id:
+            flash("This email address is already in use by another account.", "error")
+            return redirect(url_for("dashboard.profile"))
+
+        # ── Bio Validation ─────────────────────────────────────────────────
+        if bio and len(bio) > 500:
+            flash("Bio must not exceed 500 characters.", "error")
+            return redirect(url_for("dashboard.profile"))
+
+        # ── Password Validation ────────────────────────────────────────────
+        if password and len(password) < 8:
+            flash("Password must be at least 8 characters long.", "error")
+            return redirect(url_for("dashboard.profile"))
+
+        current_user.name = name
+        current_user.email = email
+        current_user.bio = bio or None
+        current_user.email_notifications = email_notifications
+
         if password:
             from werkzeug.security import generate_password_hash
             current_user.password_hash = generate_password_hash(password, method="scrypt")
             
         db.session.commit()
-        from flask import flash
         flash("Profile updated successfully!", "success")
         return redirect(url_for("dashboard.profile"))
 
