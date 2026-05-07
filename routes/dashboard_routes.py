@@ -156,6 +156,27 @@ def update_task_instance(instance_id: int, status: str):
     return redirect(url_for("dashboard.index", date=instance.date.strftime("%Y-%m-%d")))
 
 
+@dashboard_bp.route("/edit_task/<int:task_id>", methods=["POST"])
+@login_required
+def edit_task(task_id: int):
+    task = db.session.get(Task, task_id)
+    if not task or task.user_id != current_user.id:
+        return jsonify({"success": False, "message": "Task not found"}), 404
+
+    data = request.get_json() or {}
+    title = data.get("title", "").strip()
+
+    if not title:
+        return jsonify({"success": False, "message": "Task title required"}), 400
+    if len(title) > 200:
+        return jsonify({"success": False, "message": "Title is too long"}), 400
+
+    task.title = title
+    db.session.commit()
+    logger.info("Task %s renamed to '%s' by user=%s", task_id, title, current_user.id)
+    return jsonify({"success": True, "title": title})
+
+
 @dashboard_bp.route("/delete_task/<int:task_id>")
 @login_required
 def delete_task(task_id: int):

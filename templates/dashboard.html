@@ -53,9 +53,9 @@
     <div class="main-column">
 
         <!-- Add Task Form -->
-        <form action="{{ url_for('dashboard.add_task') }}" method="POST" class="add-task-row animate-fade-in d2">
+        <form action="{{ url_for('dashboard.add_task') }}" method="POST" class="add-task-row animate-fade-in d2" id="addTaskForm">
             <input type="hidden" name="current_date" value="{{ current_date }}">
-            <input type="text" name="title" class="form-control" placeholder="What needs to get done today?" required style="flex:2;">
+            <input type="text" name="title" id="taskTitleInput" class="form-control" placeholder="What needs to get done today?" required style="flex:2;">
             <select name="priority" class="form-control" style="flex:1;">
                 <option value="High">🔴 High — 20pts</option>
                 <option value="Medium">🟠 Medium — 10pts</option>
@@ -72,42 +72,117 @@
 
         <!-- Task List -->
         <div class="task-list animate-fade-in d2">
+            {% set pending_instances = [] %}
+            {% set completed_instances = [] %}
             {% for instance in instances %}
-            <div class="task-item status-{{ instance.status }}">
-                <div class="task-info">
-                    <div style="font-size:1.3rem; width:24px; text-align:center; flex-shrink:0;">
-                        {% if instance.status == 'Full' %}<i class="fa-solid fa-circle-check" style="color:var(--success);"></i>
-                        {% elif instance.status == 'Half' %}<i class="fa-solid fa-circle-half-stroke" style="color:var(--warning);"></i>
-                        {% elif instance.status == 'Missed' %}<i class="fa-solid fa-circle-xmark" style="color:var(--danger);"></i>
-                        {% else %}<i class="fa-regular fa-circle" style="color:var(--text-muted);"></i>{% endif %}
-                    </div>
-                    <div>
-                        <div class="task-title" style="{% if instance.status in ['Full','Missed'] %}text-decoration:line-through; opacity:0.6;{% endif %}">
-                            {{ instance.task.title }}
-                        </div>
-                        <div style="display:flex; gap:0.4rem; margin-top:0.3rem; align-items:center;">
-                            <span class="badge badge-{{ instance.task.priority|lower }}">{{ instance.task.priority }}</span>
-                            <span class="badge badge-recurrence">{{ instance.task.recurrence_type }}</span>
-                            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:500;">
-                                {{ instance.task.point_value }}pts
-                                {% if instance.status == 'Half' %} × 0.5{% elif instance.status == 'Missed' %} × −1{% endif %}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="task-actions">
-                    <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Full') }}" class="action-btn action-full" title="Mark Full"><i class="fa-solid fa-check"></i></a>
-                    <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Half') }}" class="action-btn action-half" title="Half Done"><i class="fa-solid fa-star-half-stroke"></i></a>
-                    <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Missed') }}" class="action-btn action-miss" title="Missed"><i class="fa-solid fa-xmark"></i></a>
-                    <a href="{{ url_for('dashboard.delete_task', task_id=instance.task.id, current_date=current_date) }}" class="action-btn" title="Delete" style="margin-left:0.25rem;" onclick="return confirm('Delete this task and all its history?')"><i class="fa-solid fa-trash" style="font-size:0.75rem;"></i></a>
-                </div>
-            </div>
-            {% else %}
-            <div class="card" style="text-align:center; padding:3rem; border:2px dashed var(--border-color); background:transparent;">
-                <i class="fa-regular fa-clipboard" style="font-size:2.5rem; color:var(--border-color); margin-bottom:1rem; display:block;"></i>
-                <h3 style="color:var(--text-muted); font-size:1rem; font-weight:500;">No tasks for this day. Add one above!</h3>
-            </div>
+                {% if instance.status in ['Full', 'Half', 'Missed'] %}
+                    {% set _ = completed_instances.append(instance) %}
+                {% else %}
+                    {% set _ = pending_instances.append(instance) %}
+                {% endif %}
             {% endfor %}
+
+            <!-- Pending Section -->
+            <div class="task-section">
+                <div class="task-section-header">
+                    <h3><i class="fa-regular fa-hourglass-half" style="color: var(--warning); margin-right: 0.5rem;"></i> Pending Tasks</h3>
+                    <span class="task-count">{{ pending_instances|length }}</span>
+                </div>
+                {% for instance in pending_instances %}
+                <div class="task-item status-{{ instance.status }}">
+                    <div class="task-info" style="flex:1; overflow:hidden;">
+                        <div style="font-size:1.3rem; width:24px; text-align:center; flex-shrink:0;">
+                            <i class="fa-regular fa-circle" style="color:var(--text-muted);"></i>
+                        </div>
+                        <div style="flex:1; margin-right: 1rem; overflow:hidden;">
+                            <div class="task-title-container" id="title-container-{{ instance.task.id }}">
+                                <div class="task-title" id="title-display-{{ instance.task.id }}" ondblclick="enableEdit('{{ instance.task.id }}')" title="Double click to edit">
+                                    {{ instance.task.title }}
+                                </div>
+                                <div class="task-edit-form" id="title-edit-{{ instance.task.id }}" style="display:none; margin-top:0.2rem;">
+                                    <input type="text" class="form-control" id="title-input-{{ instance.task.id }}" value="{{ instance.task.title }}" style="width:100%; padding:0.4rem 0.6rem;" onkeydown="if(event.key === 'Enter') saveTask('{{ instance.task.id }}'); if(event.key === 'Escape') cancelEdit('{{ instance.task.id }}');">
+                                    <div style="display:flex; gap:0.4rem; margin-top:0.4rem;">
+                                        <button type="button" class="btn btn-primary" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="saveTask('{{ instance.task.id }}')">Save</button>
+                                        <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="cancelEdit('{{ instance.task.id }}')">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:0.4rem; margin-top:0.3rem; align-items:center;">
+                                <span class="badge badge-{{ instance.task.priority|lower }}">{{ instance.task.priority }}</span>
+                                <span class="badge badge-recurrence">{{ instance.task.recurrence_type }}</span>
+                                <span style="font-size:0.72rem; color:var(--text-muted); font-weight:500;">
+                                    {{ instance.task.point_value }}pts
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions" style="flex-shrink:0;">
+                        <button type="button" class="action-btn" title="Edit Task" onclick="enableEdit('{{ instance.task.id }}')"><i class="fa-solid fa-pen" style="font-size:0.75rem;"></i></button>
+                        <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Full') }}" class="action-btn action-full" title="Mark Full"><i class="fa-solid fa-check"></i></a>
+                        <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Half') }}" class="action-btn action-half" title="Half Done"><i class="fa-solid fa-star-half-stroke"></i></a>
+                        <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Missed') }}" class="action-btn action-miss" title="Missed"><i class="fa-solid fa-xmark"></i></a>
+                        <a href="{{ url_for('dashboard.delete_task', task_id=instance.task.id, current_date=current_date) }}" class="action-btn" title="Delete" style="margin-left:0.25rem;" onclick="return confirm('Delete this task and all its history?')"><i class="fa-solid fa-trash" style="font-size:0.75rem;"></i></a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-tasks-placeholder">
+                    <i class="fa-regular fa-circle-check"></i>
+                    <span>No pending tasks. You're all caught up!</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Completed Section -->
+            <div class="task-section">
+                <div class="task-section-header">
+                    <h3><i class="fa-regular fa-circle-check" style="color: var(--success); margin-right: 0.5rem;"></i> Completed Tasks</h3>
+                    <span class="task-count">{{ completed_instances|length }}</span>
+                </div>
+                {% for instance in completed_instances %}
+                <div class="task-item status-{{ instance.status }}">
+                    <div class="task-info" style="flex:1; overflow:hidden;">
+                        <div style="font-size:1.3rem; width:24px; text-align:center; flex-shrink:0;">
+                            {% if instance.status == 'Full' %}<i class="fa-solid fa-circle-check" style="color:var(--success);"></i>
+                            {% elif instance.status == 'Half' %}<i class="fa-solid fa-circle-half-stroke" style="color:var(--warning);"></i>
+                            {% elif instance.status == 'Missed' %}<i class="fa-solid fa-circle-xmark" style="color:var(--danger);"></i>
+                            {% endif %}
+                        </div>
+                        <div style="flex:1; margin-right: 1rem; overflow:hidden;">
+                            <div class="task-title-container" id="title-container-{{ instance.task.id }}">
+                                <div class="task-title" id="title-display-{{ instance.task.id }}" ondblclick="enableEdit('{{ instance.task.id }}')" title="Double click to edit" style="{% if instance.status in ['Full','Missed'] %}text-decoration:line-through; opacity:0.6;{% endif %}">
+                                    {{ instance.task.title }}
+                                </div>
+                                <div class="task-edit-form" id="title-edit-{{ instance.task.id }}" style="display:none; margin-top:0.2rem;">
+                                    <input type="text" class="form-control" id="title-input-{{ instance.task.id }}" value="{{ instance.task.title }}" style="width:100%; padding:0.4rem 0.6rem;" onkeydown="if(event.key === 'Enter') saveTask('{{ instance.task.id }}'); if(event.key === 'Escape') cancelEdit('{{ instance.task.id }}');">
+                                    <div style="display:flex; gap:0.4rem; margin-top:0.4rem;">
+                                        <button type="button" class="btn btn-primary" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="saveTask('{{ instance.task.id }}')">Save</button>
+                                        <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="cancelEdit('{{ instance.task.id }}')">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:0.4rem; margin-top:0.3rem; align-items:center;">
+                                <span class="badge badge-{{ instance.task.priority|lower }}">{{ instance.task.priority }}</span>
+                                <span class="badge badge-recurrence">{{ instance.task.recurrence_type }}</span>
+                                <span style="font-size:0.72rem; color:var(--text-muted); font-weight:500;">
+                                    {{ instance.task.point_value }}pts
+                                    {% if instance.status == 'Half' %} × 0.5{% elif instance.status == 'Missed' %} × −1{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions" style="flex-shrink:0;">
+                        <button type="button" class="action-btn" title="Edit Task" onclick="enableEdit('{{ instance.task.id }}')"><i class="fa-solid fa-pen" style="font-size:0.75rem;"></i></button>
+                        <a href="{{ url_for('dashboard.update_task_instance', instance_id=instance.id, status='Pending') }}" class="action-btn" title="Undo"><i class="fa-solid fa-rotate-left"></i></a>
+                        <a href="{{ url_for('dashboard.delete_task', task_id=instance.task.id, current_date=current_date) }}" class="action-btn" title="Delete" style="margin-left:0.25rem;" onclick="return confirm('Delete this task and all its history?')"><i class="fa-solid fa-trash" style="font-size:0.75rem;"></i></a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-tasks-placeholder">
+                    <i class="fa-regular fa-clipboard"></i>
+                    <span>No completed tasks yet.</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Discipline Chart -->
@@ -281,5 +356,65 @@ async function loadChart(days, btn) {
 }
 
 window.onload = () => loadChart(7, document.querySelector('.chart-tab'));
+
+document.getElementById('addTaskForm').addEventListener('submit', function(e) {
+    const title = document.getElementById('taskTitleInput').value.trim();
+    if (!title) {
+        e.preventDefault();
+        showToast("Task name is required.", "error");
+        return;
+    }
+    if (title.length > 200) {
+        e.preventDefault();
+        showToast("Task name is too long.", "error");
+        return;
+    }
+});
+
+function enableEdit(taskId) {
+    document.getElementById(`title-display-${taskId}`).style.display = 'none';
+    const editForm = document.getElementById(`title-edit-${taskId}`);
+    editForm.style.display = 'block';
+    const input = document.getElementById(`title-input-${taskId}`);
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+}
+
+function cancelEdit(taskId) {
+    document.getElementById(`title-display-${taskId}`).style.display = 'block';
+    document.getElementById(`title-edit-${taskId}`).style.display = 'none';
+}
+
+async function saveTask(taskId) {
+    const newTitle = document.getElementById(`title-input-${taskId}`).value.trim();
+    if (!newTitle) {
+        showToast("Task name cannot be empty.", "error");
+        return;
+    }
+    if (newTitle.length > 200) {
+        showToast("Task name is too long.", "error");
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/edit_task/${taskId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: newTitle })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            const displayEl = document.getElementById(`title-display-${taskId}`);
+            displayEl.textContent = data.title;
+            cancelEdit(taskId);
+            showToast("Task updated successfully.", "success");
+        } else {
+            showToast(data.message || "Failed to update task.", "error");
+        }
+    } catch (err) {
+        showToast("Network error while updating task.", "error");
+    }
+}
 </script>
 {% endblock %}

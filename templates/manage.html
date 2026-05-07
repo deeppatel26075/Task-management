@@ -26,12 +26,28 @@
             <tbody>
                 {% for task in tasks %}
                 <tr>
-                    <td style="font-weight:600;">{{ task.title }}</td>
+                    <td style="font-weight:600; width: 40%;">
+                        <div class="task-title-container" id="title-container-{{ task.id }}">
+                            <div class="task-title" id="title-display-{{ task.id }}" ondblclick="enableEdit('{{ task.id }}')" title="Double click to edit" style="cursor: default; user-select: none;">
+                                {{ task.title }}
+                            </div>
+                            <div class="task-edit-form" id="title-edit-{{ task.id }}" style="display:none;">
+                                <input type="text" class="form-control" id="title-input-{{ task.id }}" value="{{ task.title }}" style="width:100%; padding:0.4rem 0.6rem; margin-bottom: 0.4rem;" onkeydown="if(event.key === 'Enter') saveTask('{{ task.id }}'); if(event.key === 'Escape') cancelEdit('{{ task.id }}');">
+                                <div style="display:flex; gap:0.4rem;">
+                                    <button type="button" class="btn btn-primary" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="saveTask('{{ task.id }}')">Save</button>
+                                    <button type="button" class="btn btn-secondary" style="padding:0.2rem 0.6rem; font-size:0.75rem;" onclick="cancelEdit('{{ task.id }}')">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
                     <td><span class="badge badge-{{ task.priority|lower }}">{{ task.priority }}</span></td>
                     <td><span class="badge badge-recurrence">{{ task.recurrence_type|title }}</span></td>
                     <td style="font-weight:700; color:var(--primary);">{{ task.point_value }}pts</td>
                     <td style="color:var(--text-muted); font-size:0.85rem;">{{ task.date_created.strftime('%b %d, %Y') }}</td>
                     <td style="text-align:right;">
+                        <button type="button" class="btn btn-secondary" style="padding:0.4rem 0.85rem; font-size:0.8rem; margin-right: 0.4rem;" onclick="enableEdit('{{ task.id }}')">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
                         <a href="{{ url_for('dashboard.delete_task', task_id=task.id) }}" class="btn btn-danger" style="padding:0.4rem 0.85rem; font-size:0.8rem;" onclick="return confirm('Delete this task and all its history forever?')">
                             <i class="fa-solid fa-trash"></i> Delete
                         </a>
@@ -49,4 +65,52 @@
         </table>
     </div>
 </div>
+
+<script>
+function enableEdit(taskId) {
+    document.getElementById(`title-display-${taskId}`).style.display = 'none';
+    const editForm = document.getElementById(`title-edit-${taskId}`);
+    editForm.style.display = 'block';
+    const input = document.getElementById(`title-input-${taskId}`);
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+}
+
+function cancelEdit(taskId) {
+    document.getElementById(`title-display-${taskId}`).style.display = 'block';
+    document.getElementById(`title-edit-${taskId}`).style.display = 'none';
+}
+
+async function saveTask(taskId) {
+    const newTitle = document.getElementById(`title-input-${taskId}`).value.trim();
+    if (!newTitle) {
+        showToast("Task name cannot be empty.", "error");
+        return;
+    }
+    if (newTitle.length > 200) {
+        showToast("Task name is too long.", "error");
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/edit_task/${taskId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: newTitle })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            const displayEl = document.getElementById(`title-display-${taskId}`);
+            displayEl.textContent = data.title;
+            cancelEdit(taskId);
+            showToast("Task updated successfully.", "success");
+        } else {
+            showToast(data.message || "Failed to update task.", "error");
+        }
+    } catch (err) {
+        showToast("Network error while updating task.", "error");
+    }
+}
+</script>
 {% endblock %}

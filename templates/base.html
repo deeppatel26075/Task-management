@@ -34,6 +34,12 @@
         <a href="{{ url_for('dashboard.profile') }}" class="menu-item {% if request.endpoint == 'dashboard.profile' %}active{% endif %}">
             <i class="fa-solid fa-user"></i> User Profile
         </a>
+        {% if current_user.role == 'admin' %}
+        <div class="menu-section-label" style="margin-top: 1.5rem; color: var(--primary);">Admin Controls</div>
+        <a href="{{ url_for('admin.users') }}" class="menu-item {% if 'admin' in request.endpoint %}active{% endif %}" style="border-left: 3px solid var(--primary); background: rgba(var(--primary-rgb), 0.1);">
+            <i class="fa-solid fa-shield-halved"></i> Admin Panel
+        </a>
+        {% endif %}
     </nav>
 
     <div class="sidebar-footer">
@@ -51,11 +57,23 @@
 </aside>
 
 <main class="main-content">
-    <div class="flash-messages">
+    <div class="flash-messages" id="toast-container-main">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
+                    <div class="flash {{ category }} animate-fade-in">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            {% if category == 'error' or category == 'danger' %}
+                                <i class="fa-solid fa-circle-xmark" style="font-size: 1.1rem; color: var(--danger)"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem; color: var(--warning)"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-check" style="font-size: 1.1rem; color: var(--success)"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <i class="fa-solid fa-xmark" style="cursor: pointer; opacity: 0.6;" onclick="this.parentElement.remove()"></i>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
@@ -66,11 +84,23 @@
 {% else %}
 
 <main class="auth-layout">
-    <div class="flash-messages">
+    <div class="flash-messages" id="toast-container-auth">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
+                    <div class="flash {{ category }} animate-fade-in">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            {% if category == 'error' or category == 'danger' %}
+                                <i class="fa-solid fa-circle-xmark" style="font-size: 1.1rem; color: var(--danger)"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem; color: var(--warning)"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-check" style="font-size: 1.1rem; color: var(--success)"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <i class="fa-solid fa-xmark" style="cursor: pointer; opacity: 0.6;" onclick="this.parentElement.remove()"></i>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
@@ -79,5 +109,56 @@
 </main>
 
 {% endif %}
+<script>
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container-main') || document.getElementById('toast-container-auth');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `flash ${type} animate-fade-in`;
+    toast.style.display = 'flex';
+    toast.style.justifyContent = 'space-between';
+    toast.style.alignItems = 'center';
+    
+    let icon = 'fa-circle-check';
+    let iconColor = 'var(--success)';
+    if (type === 'error' || type === 'danger') {
+        icon = 'fa-circle-xmark';
+        iconColor = 'var(--danger)';
+    } else if (type === 'warning') {
+        icon = 'fa-triangle-exclamation';
+        iconColor = 'var(--warning)';
+    }
+
+    toast.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fa-solid ${icon}" style="font-size: 1.1rem; color: ${iconColor}"></i>
+            <span>${message}</span>
+        </div>
+        <i class="fa-solid fa-xmark" style="cursor: pointer; opacity: 0.6;" onclick="this.parentElement.remove()"></i>
+    `;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.4s ease';
+            setTimeout(() => toast.remove(), 400);
+        }
+    }, 4500);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.flash-messages .flash').forEach(flash => {
+        setTimeout(() => {
+            if (flash.parentElement) {
+                flash.style.opacity = '0';
+                flash.style.transition = 'opacity 0.4s ease';
+                setTimeout(() => flash.remove(), 400);
+            }
+        }, 4500);
+    });
+});
+</script>
 </body>
 </html>
